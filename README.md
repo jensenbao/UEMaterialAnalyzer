@@ -49,3 +49,28 @@ streamlit run app.py
 - Complete `material_graph` model and validation
 - Implement UE Live export minimal functions
 - Parse and normalize UE Live output into `material_graph`
+
+## UE Selection -> Open Web (MVP)
+
+This repo includes a UE-side helper script at `ue_bridge/ue_open_web_for_selected_material.py`.
+
+Target workflow:
+
+1. Start Streamlit (`streamlit run app.py`).
+2. In Unreal Editor, select a Material asset in Content Browser.
+3. Execute the helper function in UE Python:
+
+```python
+import ue_open_web_for_selected_material as launcher
+launcher.open_web_for_selected_material()
+```
+
+If import fails, copy `ue_bridge/ue_open_web_for_selected_material.py` into your UE Python path (for example `<YourUEProject>/Content/Python/`).
+
+4. Browser opens `http://127.0.0.1:8501?material_name=...`.
+5. In web UI, click `Load from Query Material` to request UE Live export by name.
+
+Notes:
+
+- This is the first MVP integration point for future plugin button binding.
+- A plugin UI with manual start/stop service is the recommended next step.

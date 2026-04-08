@@ -715,3 +715,63 @@ Agent 必须严格按这个顺序开发：
 ## 12. 结论（给 Agent 的一句话任务说明）
 
 请基于本说明文档，优先实现一个 **基于 Streamlit 的 UE AI 材质节点性能分析工具**。第一阶段优先支持 **UE Live（UE API / Remote Execution）直连导出材质图**，并将输入解析为统一 `material_graph` 结构；随后实现 **规则分析、AI 报告生成、可视化结果展示、Skills 模块化沉淀**；再补充 **Paste Text（复制节点文本）** 作为备选输入通道。项目必须保持良好模块化，并为未来扩展到 **UE AI 材质创作助手** 预留接口。
+
+---
+
+## 13. 当前实现步骤（已落地版本）
+
+### 步骤 1：项目骨架初始化（已完成）
+- 已建立 `data_models / parser / analyzer / services / skills / prompts / samples / outputs / ue_bridge` 目录。
+- 已提供 `README.md` 与 `requirements.txt`。
+
+### 步骤 2：统一数据结构（已完成）
+- 已在 `data_models/material_graph.py` 定义统一结构：
+  - `material_name`
+  - `source_type`
+  - `nodes`
+  - `edges`
+  - `outputs`
+  - `stats`
+- 已提供 `to_dict()` / `from_dict()` / `validate()`。
+- 已提供样例：`samples/sample_graph_01.json`。
+
+### 步骤 3：UE Live 最小桥接（进行中）
+- 已实现客户端：`ue_bridge/remote_exec_client.py`。
+- 已实现导出接口：`ue_bridge/export_material_graph.py`。
+- 已实现归一解析：`parser/normalize_graph.py`、`parser/ue_api_parser.py`。
+
+### 步骤 4：Web 最小展示（已完成）
+- 已在 `app.py` 支持：
+  - 加载样例图
+  - UE Live 拉取
+  - 显示摘要、节点、连线、输出
+
+### 步骤 5：UE 选中后打开 Web（本轮新增）
+- 已新增 UE 侧脚本：`ue_bridge/ue_open_web_for_selected_material.py`。
+- 目标行为：在 UE 选中材质后，调用函数直接打开 Streamlit 页面，并附带 `material_name` 查询参数。
+- 已在 `app.py` 增加 `material_name` 参数读取，并支持按参数材质名加载。
+
+---
+
+## 14. UE 里选择后打开 Web 的最小交付说明
+
+### 功能目标
+用户在 UE 中选中一个材质后，点击插件按钮（或执行 Python 函数）即可打开分析 Web 页面。
+
+### 当前最小实现路径
+1. 在 UE 中选中材质资产。
+2. 执行 `open_web_for_selected_material()`。
+3. 自动打开：`http://127.0.0.1:8501?material_name=...`。
+4. Web 侧读取参数，并可按该材质名触发 UE Live 导出。
+
+### UE 侧函数（已实现）
+- `open_web_for_selected_material(web_url="http://127.0.0.1:8501")`
+- `open_web_home(web_url="http://127.0.0.1:8501")`
+
+### 插件化建议（手动启停模式）
+- 不要求 UE 启动即自动起服务。
+- 插件面板至少提供：
+  - 启动服务
+  - 停止服务
+  - 打开分析页面（基于当前选择）
+- 页面状态提示：未连接 / 已连接 / 异常。

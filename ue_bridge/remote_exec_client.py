@@ -46,6 +46,16 @@ class UERemoteExecClient:
             if not isinstance(payload, dict):
                 raise ValueError("UE remote response is not a JSON object")
             return payload
+        except error.HTTPError as exc:
+            details = ""
+            try:
+                body = exc.read().decode("utf-8", errors="replace")
+                details = f" | body={body}"
+            except Exception:
+                details = ""
+            raise RuntimeError(
+                f"UE remote request failed: HTTP {exc.code} {exc.reason}{details}"
+            ) from exc
         except (error.URLError, TimeoutError) as exc:
             raise RuntimeError(f"UE remote request failed: {exc}") from exc
         except json.JSONDecodeError as exc:
